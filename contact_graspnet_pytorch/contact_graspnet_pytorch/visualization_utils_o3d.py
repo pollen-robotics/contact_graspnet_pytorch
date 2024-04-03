@@ -1,6 +1,6 @@
 import os
 
-import contact_graspnet_pytorch.mesh_utils
+import contact_graspnet_pytorch.mesh_utils as mesh_utils
 import matplotlib.pyplot as plt
 import numpy as np
 import open3d as o3d
