@@ -1,4 +1,3 @@
-*.pt
 results
 checkpoints/*
 !checkpoints/contact_graspnet/checkpoints/*.pt
