@@ -60,4 +60,6 @@ if __name__ == "__main__":
     c = ContactGraspNetWrapper()
 
     data = np.load("/home/antoine/Téléchargements/0.npy", allow_pickle=True).item()
-    grasp_poses, _, _ = c.infer(data["seg"], data["rgb"], data["depth"], data["K"])
+    grasp_poses, _, _ = c.infer(
+        data["seg"], data["rgb"], data["depth"], data["K"], visualize=True
+    )
