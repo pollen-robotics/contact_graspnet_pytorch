@@ -1,11 +1,5 @@
-import os
-from importlib.resources import files
-from typing import Any
-
 import contact_graspnet_pytorch.config_utils as config_utils
 import numpy as np
-
-# from contact_graspnet_pytorch.checkpoint_io import CheckpointIO
 from contact_graspnet_pytorch.contact_grasp_estimator import GraspEstimator
 from contact_graspnet_pytorch.visualization_utils_o3d import (
     show_image,
@@ -17,19 +11,8 @@ class ContactGraspNetWrapper:
     def __init__(
         self,
     ):
-        ckpt_dir = config_utils.get_checkpoints_dir_path()
-        global_config = config_utils.load_config(ckpt_dir, batch_size=1)
+        global_config = config_utils.load_config(batch_size=1)
         self.grasp_estimator = GraspEstimator(global_config)
-        model_checkpoint_dir = os.path.join(ckpt_dir, "checkpoints")
-
-        # checkpoint_io = CheckpointIO(
-        #     checkpoint_dir=model_checkpoint_dir, model=self.grasp_estimator.model
-        # )
-        # try:
-        #     load_dict = checkpoint_io.load("model.pt")
-        # except FileExistsError:
-        #     print("No model checkpoint found")
-        #     load_dict = {}
 
     def infer(
         self, segmap, rgb, depth, cam_K, pc_full=None, pc_colors=None, visualize=False
