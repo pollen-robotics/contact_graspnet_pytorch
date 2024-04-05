@@ -14,9 +14,7 @@ class ContactGraspNetWrapper:
         global_config = config_utils.load_config(batch_size=1)
         self.grasp_estimator = GraspEstimator(global_config)
 
-    def infer(
-        self, segmap, rgb, depth, cam_K, pc_full=None, pc_colors=None, visualize=False
-    ):
+    def infer(self, segmap, rgb, depth, cam_K, pc_full=None, pc_colors=None):
         """
         Returns:
             - dict {1: [list of grasp poses], 2: [list of grasp poses]...}
@@ -44,22 +42,23 @@ class ContactGraspNetWrapper:
             )
         )
 
-        if visualize:
-            show_image(rgb, segmap)
-            visualize_grasps(
-                pc_full,
-                pred_grasps_cam,
-                scores,
-                plot_opencv_cam=True,
-                pc_colors=pc_colors,
-            )
-        return pred_grasps_cam, scores, contact_pts
+        return pred_grasps_cam, scores, contact_pts, pc_full, pc_colors
+
+    def visualize(self, rgb, segmap, pc_full, pred_grasps_cam, scores, pc_colors):
+        show_image(rgb, segmap)
+        visualize_grasps(
+            pc_full,
+            pred_grasps_cam,
+            scores,
+            plot_opencv_cam=True,
+            pc_colors=pc_colors,
+        )
 
 
-if __name__ == "__main__":
-    c = ContactGraspNetWrapper()
+# if __name__ == "__main__":
+#     c = ContactGraspNetWrapper()
 
-    data = np.load("/home/antoine/Téléchargements/0.npy", allow_pickle=True).item()
-    grasp_poses, _, _ = c.infer(
-        data["seg"], data["rgb"], data["depth"], data["K"], visualize=True
-    )
+#     data = np.load("/home/antoine/Téléchargements/0.npy", allow_pickle=True).item()
+#     grasp_poses, _, _ = c.infer(
+#         data["seg"], data["rgb"], data["depth"], data["K"], visualize=True
+#     )

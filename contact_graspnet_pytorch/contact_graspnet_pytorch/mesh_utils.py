@@ -4,17 +4,17 @@
 from __future__ import print_function
 
 import argparse
-from collections import OrderedDict
 import errno
 import json
 import os
-import numpy as np
 import pickle
-from tqdm import tqdm
+from collections import OrderedDict
+
+import numpy as np
+import torch
 import trimesh
 import trimesh.transformations as tra
-
-import torch
+from tqdm import tqdm
 
 # import tensorflow.compat.v1 as tf
 
