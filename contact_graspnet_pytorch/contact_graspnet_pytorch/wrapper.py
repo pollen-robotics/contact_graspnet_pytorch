@@ -5,6 +5,9 @@ from contact_graspnet_pytorch.visualization_utils_o3d import (
     show_image,
     visualize_grasps,
 )
+from huggingface_hub import hf_hub_download
+
+from contact_graspnet_pytorch.checkpoints import CheckpointIO
 
 
 class ContactGraspNetWrapper:
@@ -13,6 +16,19 @@ class ContactGraspNetWrapper:
     ):
         global_config = config_utils.load_config(batch_size=1)
         self.grasp_estimator = GraspEstimator(global_config)
+        checkpoint_io = CheckpointIO(
+            checkpoint_dir="/tmp/", model=self.grasp_estimator.model
+        )
+        model_path = hf_hub_download(
+            repo_id="pollen-robotics/contact_graspnet",
+            filename="checkpoints/contact_graspnet/checkpoints/model.pt",
+        )
+        try:
+            load_dict = checkpoint_io.load(model_path)
+        except FileExistsError:
+            print("No model checkpoint found")
+            load_dict = {}
+            exit()
 
     def infer(self, segmap, rgb, depth, cam_K, pc_full=None, pc_colors=None):
         """
@@ -55,10 +71,14 @@ class ContactGraspNetWrapper:
         )
 
 
-# if __name__ == "__main__":
-#     c = ContactGraspNetWrapper()
+if __name__ == "__main__":
+    c = ContactGraspNetWrapper()
 
-#     data = np.load("/home/antoine/Téléchargements/0.npy", allow_pickle=True).item()
-#     grasp_poses, _, _ = c.infer(
-#         data["seg"], data["rgb"], data["depth"], data["K"], visualize=True
-#     )
+    data = np.load(
+        "/home/antoine/Téléchargements/0.npy",
+        allow_pickle=True,
+    ).item()
+    grasp_poses, scores, contact_pts, pc_full, pc_colors = c.infer(
+        data["seg"], data["rgb"], data["depth"], data["K"]
+    )
+    c.visualize(data["rgb"], data["seg"], pc_full, grasp_poses, scores, pc_colors)
