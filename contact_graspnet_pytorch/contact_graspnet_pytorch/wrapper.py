@@ -32,6 +32,7 @@ class ContactGraspNetWrapper:
 
     def infer(self, segmap, rgb, depth, cam_K, pc_full=None, pc_colors=None):
         """
+        Returns grasps sorted by scores in descending order
         Returns:
             - dict {1: [list of grasp poses], 2: [list of grasp poses]...}
             - scores
@@ -58,7 +59,31 @@ class ContactGraspNetWrapper:
             )
         )
 
-        return pred_grasps_cam, scores, contact_pts, pc_full, pc_colors
+        if 1 not in scores.keys() or len(scores[1]) == 0:
+            return pred_grasps_cam, scores, contact_pts, pc_full, pc_colors
+
+        sorted_grasps = {}
+        sorted_scores = {}
+        sorted_contact_pts = {}
+        for k in scores.keys():
+            (sorted_scores[k], sorted_grasps[k], sorted_contact_pts[k]) = zip(
+                *sorted(
+                    zip(
+                        scores[k],
+                        pred_grasps_cam[k],
+                        contact_pts[k],
+                    ),
+                    reverse=True,
+                )
+            )
+
+        return (
+            sorted_grasps,
+            sorted_scores,
+            sorted_contact_pts,
+            pc_full,
+            pc_colors,
+        )
 
     def visualize(self, rgb, segmap, pc_full, pred_grasps_cam, scores, pc_colors):
         show_image(rgb, segmap)
