@@ -73,6 +73,7 @@ class ContactGraspNetWrapper:
                         pred_grasps_cam[k],
                         contact_pts[k],
                     ),
+                    key=lambda x: x[0],
                     reverse=True,
                 )
             )
