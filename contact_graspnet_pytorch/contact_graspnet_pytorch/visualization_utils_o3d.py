@@ -194,12 +194,16 @@ def visualize_grasps(
     }
 
     for i, k in enumerate(pred_grasps_cam):
+
         if np.any(pred_grasps_cam[k]):
+
             # Set gripper openings
             if gripper_openings is None:
                 gripper_openings_k = np.ones(len(pred_grasps_cam[k])) * gripper_width
+
             else:
                 gripper_openings_k = gripper_openings[k]
+
 
             if len(pred_grasps_cam) > 1:
                 draw_grasps(
@@ -208,6 +212,8 @@ def visualize_grasps(
                     np.eye(4),
                     colors=[colors[i]],
                     gripper_openings=gripper_openings_k,
+                    tube_radius=0.005,
+                    show_gripper_mesh=True
                 )
                 draw_grasps(
                     vis,
@@ -215,7 +221,8 @@ def visualize_grasps(
                     np.eye(4),
                     colors=[colors2[k]],
                     gripper_openings=[gripper_openings_k[np.argmax(scores[k])]],
-                    tube_radius=0.0025,
+                    tube_radius=0.005,
+                    show_gripper_mesh=True
                 )
             else:
                 max_score = np.max(scores[k])
@@ -231,6 +238,7 @@ def visualize_grasps(
                     np.eye(4),
                     colors=colors3,
                     gripper_openings=gripper_openings_k,
+                    tube_radius=0.005,
                 )
                 best_grasp_idx = np.argmax(scores[k])
                 draw_grasps(
@@ -239,6 +247,7 @@ def visualize_grasps(
                     np.eye(4),
                     colors=[(1, 0, 0)],
                     gripper_openings=gripper_openings_k,
+                    tube_radius=0.005,
                 )
 
     vis.run()

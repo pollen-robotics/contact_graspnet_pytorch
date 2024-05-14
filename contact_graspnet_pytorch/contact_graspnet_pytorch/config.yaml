@@ -189,8 +189,8 @@ TEST:
   allow_zero_margin: 0
   bin_vals: max
   center_to_tip: 0.0
-  extra_opening: 0.005
+  extra_opening: 0.01
   max_farthest_points: 150
   num_samples: 200
   with_replacement: false
-  filter_thres: 0.0001
+  filter_thres: 0.01
