@@ -1,13 +1,25 @@
 import contact_graspnet_pytorch.config_utils as config_utils
 import numpy as np
+import numpy.typing as npt
 from contact_graspnet_pytorch.contact_grasp_estimator import GraspEstimator
 from contact_graspnet_pytorch.visualization_utils_o3d import (
     show_image,
     visualize_grasps,
 )
 from huggingface_hub import hf_hub_download
+from scipy.spatial.transform import Rotation as R
 
 from contact_graspnet_pytorch.checkpoints import CheckpointIO
+
+
+def normalize_pose(pose: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
+    r = R.from_matrix(pose[:3, :3])
+    q = r.as_quat()  # astuce, en convertissant en quaternion il normalise
+    r2 = R.from_quat(q)
+    good_rot = r2.as_matrix()
+    pose[:3, :3] = good_rot
+
+    return pose
 
 
 class ContactGraspNetWrapper:
@@ -70,7 +82,7 @@ class ContactGraspNetWrapper:
                 *sorted(
                     zip(
                         scores[k],
-                        pred_grasps_cam[k],
+                        normalize_pose(pred_grasps_cam[k]),
                         contact_pts[k],
                     ),
                     key=lambda x: x[0],
