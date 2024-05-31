@@ -16,7 +16,7 @@ def inference(global_config,
               input_paths, 
               local_regions=True, 
               filter_grasps=True, 
-              skip_border_objects=False,
+              skip_border_objects=True,
               z_range = [0.2,1.8],
               forward_passes=1,
               K=None,):
