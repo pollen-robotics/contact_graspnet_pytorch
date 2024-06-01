@@ -218,6 +218,7 @@ class GraspEstimator:
         pred_grasps_cam[:,:3, 3] += pc_mean.reshape(-1,3)
         pred_points[:,:3] += pc_mean.reshape(-1,3)
 
+
         if constant_offset:
             offset_pred = np.array([[self._contact_grasp_cfg['DATA']['gripper_width']-self._contact_grasp_cfg['TEST']['extra_opening']]*self._contact_grasp_cfg['DATA']['num_point']])
 

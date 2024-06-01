@@ -338,6 +338,7 @@ def draw_grasps(
         show_gripper_mesh {bool} -- Renders the gripper mesh for one of the grasp poses (default: {False})
     """
 
+
     gripper = mesh_utils.create_gripper("panda")
     gripper_control_points = gripper.get_control_point_tensor(
         1, False, convex_hull=False
@@ -354,7 +355,7 @@ def draw_grasps(
             gripper_control_points[4],
         ]
     )
-
+    # print(f"GRAPS LINES: {grasp_line_plot}")
     if show_gripper_mesh and len(grasps) > 0:
         plot_mesh(gripper.hand, cam_pose, grasps[0])
 
@@ -363,17 +364,39 @@ def draw_grasps(
     index = 0
     N = 7
     color_arr = []
+
+    spheres=[]
+
     for i, (g, g_opening) in enumerate(zip(grasps, gripper_openings)):
         gripper_control_points_closed = grasp_line_plot.copy()
         gripper_control_points_closed[2:, 0] = (
             np.sign(grasp_line_plot[2:, 0]) * g_opening / 2
         )
+        # mesh_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=0.01)
+        # mesh_sphere.compute_vertex_normals()
+        # mesh_sphere.paint_uniform_color([0.1, 0.1, 0.7])
+        # mesh_sphere.translate(g[:3, 3])
+        # mesh_sphere.rotate(g[:3, :3])
+        # # mesh_sphere.translate([0,0,0.10527])
+        # vis.add_geometry(mesh_sphere)
 
         pts = np.matmul(gripper_control_points_closed, g[:3, :3].T)
+
+
         pts += np.expand_dims(g[:3, 3], 0)
         pts_homog = np.concatenate((pts, np.ones((7, 1))), axis=1)
         pts = np.dot(pts_homog, cam_pose.T)[:, :3]
 
+        # print(f'PTS: {pts}')
+        # mesh_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=0.01)
+        # mesh_sphere.compute_vertex_normals()
+        # mesh_sphere.paint_uniform_color([0.1, 0.1, 0.7])
+        # mesh_sphere.translate(pts[1])
+
+        # vis.add_geometry(mesh_sphere)
+
+        # L=np.linalg.norm(pts[1]-pts[0])
+        # print(f'LONGUEUR: {L}')
         # color = color if colors is None else colors[i]
         # colors.append(color)
 
@@ -412,6 +435,7 @@ def draw_grasps(
     # mat = o3d.visualization.rendering.MaterialRecord()
     # mat.shader = "unlitLine"
     # mat.line_width = 10
+
     vis.add_geometry(line_set)
     # vis.draw({
     #     'name': 'grasps',

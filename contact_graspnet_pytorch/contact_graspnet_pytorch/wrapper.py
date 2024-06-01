@@ -45,7 +45,7 @@ class ContactGraspNetWrapper:
             load_dict = {}
             exit()
 
-    def infer(self, segmap, rgb, depth, cam_K, pc_full=None, pc_colors=None):
+    def infer(self, segmap, rgb, depth, cam_K, pc_full=None, pc_colors=None, filtering=False):
         """
         Returns grasps sorted by scores in descending order
         Returns:
@@ -53,6 +53,7 @@ class ContactGraspNetWrapper:
             - scores
             - contact_pts
         """
+        print("Contact graspnet infer")
         if pc_full is None:
             print("Converting depth to point cloud(s)...")
             pc_full, pc_segments, pc_colors = self.grasp_estimator.extract_point_clouds(
@@ -60,17 +61,17 @@ class ContactGraspNetWrapper:
                 cam_K,
                 segmap=segmap,
                 rgb=rgb,
-                skip_border_objects=False,
+                skip_border_objects=True,
                 z_range=[0.2, 1.8],
             )
 
 
-        # if filtering:
-        #     pc_full=filter_pcd(pc_full)
-        #     pc_seg_fil={}
-        #     for segment in pc_segments.items():
-        #         pc_seg_fil[segment[0]]=filter_pcd(segment[1])
-        #     pc_segments=pc_seg_fil
+        if filtering:
+            pc_full=filter_pcd(pc_full)
+            pc_seg_fil={}
+            for segment in pc_segments.items():
+                pc_seg_fil[segment[0]]=filter_pcd(segment[1])
+            pc_segments=pc_seg_fil
 
         pred_grasps_cam, scores, contact_pts, gripper_openings = (
             self.grasp_estimator.predict_scene_grasps(
@@ -83,7 +84,7 @@ class ContactGraspNetWrapper:
         )
 
         if 1 not in scores.keys() or len(scores[1]) == 0:
-            return pred_grasps_cam, scores, contact_pts, pc_full, pc_colors
+            return pred_grasps_cam, scores, contact_pts, gripper_openings,pc_full, pc_colors
 
         sorted_grasps = {}
         sorted_scores = {}
