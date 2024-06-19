@@ -1,6 +1,7 @@
 import contact_graspnet_pytorch.config_utils as config_utils
 import numpy as np
 import numpy.typing as npt
+import open3d as o3d
 from contact_graspnet_pytorch.contact_grasp_estimator import GraspEstimator
 from contact_graspnet_pytorch.visualization_utils_o3d import (
     show_image,
@@ -10,7 +11,7 @@ from huggingface_hub import hf_hub_download
 from scipy.spatial.transform import Rotation as R
 
 from contact_graspnet_pytorch.checkpoints import CheckpointIO
-import open3d as o3d
+
 
 def filter_pcd(pcd_input):
     pcd = o3d.geometry.PointCloud()
@@ -20,12 +21,13 @@ def filter_pcd(pcd_input):
     # uni_down_pcd = pcd.uniform_down_sample(every_k_points=5)
     # o3d.visualization.draw_geometries([uni_down_pcd])
     # print("Statistical oulier removal")
-    cl, ind = pcd.remove_statistical_outlier(nb_neighbors=128,std_ratio=3.0)
-    pcd=pcd.select_by_index(ind)
+    cl, ind = pcd.remove_statistical_outlier(nb_neighbors=128, std_ratio=3.0)
+    pcd = pcd.select_by_index(ind)
     # print("Radius oulier removal")
     cl, ind = pcd.remove_radius_outlier(nb_points=128, radius=0.03)
-    pcd=pcd.select_by_index(ind)
+    pcd = pcd.select_by_index(ind)
     return np.asarray(pcd.points)
+
 
 def normalize_pose(pose: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
     r = R.from_matrix(pose[:3, :3])
@@ -57,7 +59,9 @@ class ContactGraspNetWrapper:
             load_dict = {}
             exit()
 
-    def infer(self, segmap, rgb, depth, cam_K, pc_full=None, pc_colors=None, filtering=False):
+    def infer(
+        self, segmap, rgb, depth, cam_K, pc_full=None, pc_colors=None, filtering=False
+    ):
         """
         Returns grasps sorted by scores in descending order
         Returns:
@@ -77,13 +81,12 @@ class ContactGraspNetWrapper:
                 z_range=[0.2, 1.8],
             )
 
-
         if filtering:
-            pc_full=filter_pcd(pc_full)
-            pc_seg_fil={}
+            pc_full = filter_pcd(pc_full)
+            pc_seg_fil = {}
             for segment in pc_segments.items():
-                pc_seg_fil[segment[0]]=filter_pcd(segment[1])
-            pc_segments=pc_seg_fil
+                pc_seg_fil[segment[0]] = filter_pcd(segment[1])
+            pc_segments = pc_seg_fil
 
         pred_grasps_cam, scores, contact_pts, gripper_openings = (
             self.grasp_estimator.predict_scene_grasps(
@@ -96,23 +99,33 @@ class ContactGraspNetWrapper:
         )
 
         if 1 not in scores.keys() or len(scores[1]) == 0:
-            return pred_grasps_cam, scores, contact_pts, gripper_openings,pc_full, pc_colors
+            return (
+                pred_grasps_cam,
+                scores,
+                contact_pts,
+                gripper_openings,
+                pc_full,
+                pc_colors,
+            )
 
         sorted_grasps = {}
         sorted_scores = {}
         sorted_contact_pts = {}
-        print(f'scores: {scores}')
+        print(f"scores: {scores}")
         for k in scores.keys():
-            print(f'SCORES: {k} {scores[k].shape} {pred_grasps_cam[k].shape} {contact_pts[k].shape}')
+            print(
+                f"SCORES: {k} {scores[k].shape} {pred_grasps_cam[k].shape} {contact_pts[k].shape}"
+            )
             (sorted_scores[k], sorted_grasps[k], sorted_contact_pts[k]) = zip(
                 *sorted(
                     zip(
                         scores[k],
-                        normalize_pose(pred_grasps_cam[k]),
+                        # normalize_pose(pred_grasps_cam[k]), # TODO bug ?
+                        pred_grasps_cam[k],
                         contact_pts[k],
                     ),
                     reverse=True,
-                    key=lambda x:x[0]
+                    key=lambda x: x[0],
                 )
             )
 
@@ -125,7 +138,16 @@ class ContactGraspNetWrapper:
             pc_colors,
         )
 
-    def visualize(self, rgb, segmap, pc_full, pred_grasps_cam, scores, pc_colors, gripper_openings=None):
+    def visualize(
+        self,
+        rgb,
+        segmap,
+        pc_full,
+        pred_grasps_cam,
+        scores,
+        pc_colors,
+        gripper_openings=None,
+    ):
         show_image(rgb, segmap)
         visualize_grasps(
             pc_full,
